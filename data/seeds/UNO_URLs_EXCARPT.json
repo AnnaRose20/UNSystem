@@ -1,0 +1,188 @@
+{
+  "Hauptorgane": [
+    {
+      "name": "UN-Generalversammlung",
+      "abkuerzung": "UNGA",
+      "url": "https://www.un.org/en/ga/"
+    },
+    {
+      "name": "Sicherheitsrat der Vereinten Nationen",
+      "abkuerzung": "UNSC",
+      "url": "https://www.un.org/securitycouncil/"
+    },
+    {
+      "name": "Wirtschafts- und Sozialrat",
+      "abkuerzung": "ECOSOC",
+      "url": "https://www.un.org/ecosoc/en/"
+    },
+    {
+      "name": "UN-Sekretariat",
+      "abkuerzung": "UN Secretariat",
+      "url": "https://www.un.org/sg/en"
+    },
+    {
+      "name": "Internationaler Gerichtshof",
+      "abkuerzung": "ICJ",
+      "url": "https://www.icj-cij.org/"
+    },
+    {
+      "name": "Treuhandrat",
+      "abkuerzung": "Trusteeship Council",
+      "url": "https://www.un.org/en/about-us/trusteeship-council"
+    }
+  ],
+  "Nebenorgane_Programme_Fonds": [
+    {
+      "name": "Menschenrechtsrat",
+      "abkuerzung": "HRC",
+      "url": "https://www.ohchr.org/en/hrc"
+    },
+    {
+      "name": "UN-Entwicklungsprogramm",
+      "abkuerzung": "UNDP",
+      "url": "https://www.undp.org/"
+    },
+    {
+      "name": "UN-Umweltprogramm",
+      "abkuerzung": "UNEP",
+      "url": "https://www.unep.org/"
+    },
+    {
+      "name": "UN-Kinderhilfswerk",
+      "abkuerzung": "UNICEF",
+      "url": "https://www.unicef.org/"
+    },
+    {
+      "name": "UN-Konferenz für Handel und Entwicklung",
+      "abkuerzung": "UNCTAD",
+      "url": "https://unctad.org/"
+    },
+    {
+      "name": "Welternährungsprogramm",
+      "abkuerzung": "WFP",
+      "url": "https://www.wfp.org/"
+    },
+    {
+      "name": "UN-Bevölkerungsfonds",
+      "abkuerzung": "UNFPA",
+      "url": "https://www.unfpa.org/"
+    },
+    {
+      "name": "UN-Hochkommissariat für Flüchtlinge",
+      "abkuerzung": "UNHCR",
+      "url": "https://www.unhcr.org/"
+    },
+    {
+      "name": "Amt für die Koordinierung humanitärer Angelegenheiten",
+      "abkuerzung": "OCHA",
+      "url": "https://www.unocha.org/"
+    },
+    {
+      "name": "UN-Hilfswerk für Palästina-Flüchtlinge",
+      "abkuerzung": "UNRWA",
+      "url": "https://www.unrwa.org/"
+    },
+    {
+      "name": "UN Women",
+      "abkuerzung": "UN Women",
+      "url": "https://www.unwomen.org/"
+    },
+    {
+      "name": "UN-Habitat",
+      "abkuerzung": "UN-Habitat",
+      "url": "https://unhabitat.org/"
+    },
+    {
+      "name": "UN-Büro für Drogen- und Verbrechensbekämpfung",
+      "abkuerzung": "UNODC",
+      "url": "https://www.unodc.org/"
+    },
+    {
+      "name": "Universität der Vereinten Nationen",
+      "abkuerzung": "UNU",
+      "url": "https://unu.edu/"
+    },
+    {
+      "name": "UN-Institut für Ausbildung und Forschung",
+      "abkuerzung": "UNITAR",
+      "url": "https://unitar.org/"
+    }
+  ],
+  "Sonderorganisationen": [
+    {
+      "name": "Ernährungs- und Landwirtschaftsorganisation",
+      "abkuerzung": "FAO",
+      "url": "https://www.fao.org/"
+    },
+    {
+      "name": "Internationale Zivilluftfahrtorganisation",
+      "abkuerzung": "ICAO",
+      "url": "https://www.icao.int/"
+    },
+    {
+      "name": "Internationaler Fonds für landwirtschaftliche Entwicklung",
+      "abkuerzung": "IFAD",
+      "url": "https://www.ifad.org/"
+    },
+    {
+      "name": "Internationale Arbeitsorganisation",
+      "abkuerzung": "ILO",
+      "url": "https://www.ilo.org/"
+    },
+    {
+      "name": "Internationale Seeschifffahrts-Organisation",
+      "abkuerzung": "IMO",
+      "url": "https://www.imo.org/"
+    },
+    {
+      "name": "Internationaler Währungsfonds",
+      "abkuerzung": "IMF",
+      "url": "https://www.imf.org/"
+    },
+    {
+      "name": "Internationale Fernmeldeunion",
+      "abkuerzung": "ITU",
+      "url": "https://www.itu.int/"
+    },
+    {
+      "name": "Organisation der Vereinten Nationen für Erziehung, Wissenschaft und Kultur",
+      "abkuerzung": "UNESCO",
+      "url": "https://www.unesco.org/"
+    },
+    {
+      "name": "Organisation der Vereinten Nationen für industrielle Entwicklung",
+      "abkuerzung": "UNIDO",
+      "url": "https://www.unido.org/"
+    },
+    {
+      "name": "Weltpostverein",
+      "abkuerzung": "UPU",
+      "url": "https://www.upu.int/"
+    },
+    {
+      "name": "Weltbankgruppe",
+      "abkuerzung": "WBG",
+      "url": "https://www.worldbank.org/"
+    },
+    {
+      "name": "Weltgesundheitsorganisation",
+      "abkuerzung": "WHO",
+      "url": "https://www.who.int/"
+    },
+    {
+      "name": "Weltorganisation für geistiges Eigentum",
+      "abkuerzung": "WIPO",
+      "url": "https://www.wipo.int/"
+    },
+    {
+      "name": "Weltorganisation für Meteorologie",
+      "abkuerzung": "WMO",
+      "url": "https://public.wmo.int/"
+    },
+    {
+      "name": "UN Tourism (Welttourismusorganisation)",
+      "abkuerzung": "UN Tourism / UNWTO",
+      "url": "https://www.unwto.org/"
+    }
+  ]
+}
