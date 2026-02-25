@@ -9,6 +9,78 @@ from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 
+import re
+from urllib.parse import urlparse
+
+# UN doc symbol patterns (extend as needed)
+SYMBOL_RULES = [
+    # resolutions
+    ("resolution", r"\bA/RES/\d+/\d+\b"),
+    ("resolution", r"\bS/RES/\d+\s*\(\d{4}\)\b"),
+
+    # meeting records
+    ("meeting_record", r"\bS/PV\.\d+\b"),
+    ("meeting_record", r"\bA/\d+/PV\.\d+\b"),
+
+    # presidential statements
+    ("pres_statement", r"\bS/PRST/\d{4}/\d+\b"),
+
+    # draft resolutions
+    ("draft_resolution", r"\bA/\d+/L\.\d+\b"),
+    ("draft_resolution", r"\bS/\d{4}/L\.\d+\b"),
+
+    # reports (keep last!)
+    ("report", r"\bS/\d{4}/\d+\b"),
+    ("report", r"\bA/\d+/\d+\b"),
+
+    # agenda
+    ("agenda", r"\bA/\d+/1\b"),
+]
+
+def extract_symbol_and_category_from_text(text: str):
+    if not text:
+        return None, None
+    for cat, pat in SYMBOL_RULES:
+        m = re.search(pat, text)
+        if m:
+            return m.group(0), cat
+    return None, None
+
+def extract_symbol_and_category_from_url(url: str):
+    return extract_symbol_and_category_from_text(url)
+
+def domain(url: str) -> str:
+    return urlparse(url).netloc.lower()
+
+# Fallback category when there is no UN symbol (common for agencies/programmes)
+def fallback_category(org_id: str, url: str) -> str:
+    u = url.lower()
+    d = domain(url)
+
+    # UN main organs (often have symbols, but fallback anyway)
+    if org_id in {"UNGA","UNSC","ECOSOC","UN Secretariat","ICJ","Trusteeship Council"}:
+        if "press" in u or "statement" in u:
+            return "statement"
+        return "report"
+
+    # Programmes/Funds + Specialized agencies: mostly "publications/reports"
+    if any(x in u for x in ["publication", "publications", "report", "reports", "document", "documents", "library"]):
+        return "publication"
+    if any(x in u for x in ["news", "press", "media"]):
+        return "press_release"
+
+    return "publication"
+
+from pypdf import PdfReader
+
+def extract_symbol_and_category_from_pdf(file_path: str):
+    try:
+        reader = PdfReader(file_path)
+        txt = (reader.pages[0].extract_text() or "")[:2500]
+        return extract_symbol_and_category_from_text(txt)
+    except Exception:
+        return None, None
+
 DB_PATH = "uno.db"
 RAW_DIR = Path("data/raw")
 RAW_DIR.mkdir(parents=True, exist_ok=True)
@@ -203,12 +275,37 @@ def crawl_one_source(conn: sqlite3.Connection, source_row: dict) -> None:
 
                 if not file_path.exists():
                     file_path.write_bytes(data)
+                
+                                # 1) try URL-based detection
+                doc_symbol, doc_category = extract_symbol_and_category_from_url(doc_url)
+                detected_from = "url"
+
+                # 2) if not found, try PDF-based detection
+                if (not doc_symbol or not doc_category) and str(file_path).lower().endswith(".pdf"):
+                    s2, c2 = extract_symbol_and_category_from_pdf(str(file_path))
+                    if s2 or c2:
+                        doc_symbol = doc_symbol or s2
+                        doc_category = doc_category or c2
+                        detected_from = "pdf"
+
+                # 3) fallback for non-symbol org sites
+                if not doc_category:
+                    doc_category = fallback_category(org_id, doc_url)
+                    detected_from = detected_from if detected_from in ("url","pdf") else "fallback"
 
                 conn.execute(
-                    """INSERT INTO raw_fetch(org_id, source_id, url, http_status, content_type, sha256, file_path) VALUES (?,?,?,?,?,?,?)""",
-                    (org_id, source_id, doc_url, status, ct, digest, str(file_path)),
+                    """
+                    INSERT INTO raw_fetch(
+                        org_id, source_id, url, http_status, content_type, sha256, file_path,
+                        doc_symbol, doc_category, detected_from
+                    )
+                    VALUES (?,?,?,?,?,?,?,?,?,?)
+                    """,
+                    (org_id, source_id, doc_url, status, ct, digest, str(file_path),
+                    doc_symbol, doc_category, detected_from),
                 )
                 conn.commit()
+
                 print(file_path.name)
                 downloaded += 1
                 print(f"  ✓ {downloaded}/{MAX_DOCS_PER_SOURCE} saved {file_path.name}")
@@ -220,8 +317,6 @@ def crawl_one_source(conn: sqlite3.Connection, source_row: dict) -> None:
                 )
                 conn.commit()
                 print(f"  !! failed {doc_url} ({e})")
-
-
 
 
 
