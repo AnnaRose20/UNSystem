@@ -14,5 +14,5 @@ Base = declarative_base()
 
 def init_db():
     # Import models ONLY here to avoid circular import
-    import db.model  # noqa
+    #import src.db.model  # noqa
     Base.metadata.create_all(bind=engine)
