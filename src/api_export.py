@@ -55,8 +55,11 @@ def df_to_excel_bytes(df: pd.DataFrame):
 def _save_to_database(df: pd.DataFrame, orgid: str):
     """Add OrgID and timestamp, dedupe and write rows to sqlite table.
 
-    Previous entries for the same organisation are removed first so that
-    calling the same org twice overwrites rather than appends.
+    The requested_links table enforces a UNIQUE constraint on
+    (OrgID, Link, Year).  This function removes the previous entries
+    for the same org before inserting fresh data, preventing constraint
+    violations.  Duplicates within the frame are also dropped based on
+    the constraint columns.
     """
     # normalise column name used by generators
     if "URL" in df.columns and "Link" not in df.columns:
@@ -66,18 +69,24 @@ def _save_to_database(df: pd.DataFrame, orgid: str):
     df["OrgID"] = orgid
     df["RequestedAt"] = datetime.now()
 
-    # keep only the columns we care about and drop any duplicates
+    # keep only the columns we care about
     cols = [c for c in ["Year", "Type", "Symbol", "Link", "OrgID", "RequestedAt"]
             if c in df.columns]
-    df = df[cols].drop_duplicates()
+    df = df[cols]
+
+    # drop duplicates based on the UNIQUE constraint columns: (OrgID, Link, Year)
+    # this preserves the most recent RequestedAt for each unique combination
+    df = df.drop_duplicates(subset=["OrgID", "Link", "Year"], keep="last")
 
     engine = create_engine("sqlite:///uno.db")
     with engine.begin() as conn:
-        # remove whatever we inserted previously for this org
-        conn.execute(
-            text("DELETE FROM requested_links WHERE OrgID = :org"),
-            {"org": orgid},
-        )
+        # Only delete rows that would conflict (same OrgID, Link, Year)
+        # This preserves data for other years of the same organization
+        for _, row in df[["Link", "Year"]].drop_duplicates().iterrows():
+            conn.execute(
+                text("DELETE FROM requested_links WHERE OrgID = :org AND Link = :link AND Year = :year"),
+                {"org": orgid, "link": row["Link"], "year": row["Year"]},
+            )
         df.to_sql("requested_links", conn, if_exists="append", index=False)
 
 
