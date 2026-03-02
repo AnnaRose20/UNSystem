@@ -67,4 +67,4 @@ def load_un_structure(json_file: str):
 
 
 if __name__ == "__main__":
-    load_un_structure("data/seeds/UNO_URLs_EXCARPT.json")
+    load_un_structure("data/seeds/seeds.json")

@@ -2,10 +2,12 @@
 .venv/
 venv/
 env/
-
+data/raw
 # Python cache
 __pycache__/
 *.pyc
+
+data/processed
 
 # VS Code settings
 .vscode/
