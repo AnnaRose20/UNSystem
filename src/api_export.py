@@ -1,7 +1,8 @@
 from datetime import datetime
+import json
 
 from fastapi import FastAPI, Query, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 import pandas as pd
 import io
 
@@ -10,6 +11,7 @@ from sqlalchemy import create_engine, text
 
 # relative import – src is a package
 from . import generators_api
+from .pdf_downloader import PDFDownloader
 
 app = FastAPI(title="UNO URL Export API")
 
@@ -90,7 +92,7 @@ def _save_to_database(df: pd.DataFrame, orgid: str):
         df.to_sql("requested_links", conn, if_exists="append", index=False)
 
 
-@app.get("/export/urls.xlsx")
+@app.get("/export/urls")
 def export_urls(
     org: str = Query(..., description="Organisation name"),
     year: int = Query(None, description="Filter by year")
@@ -123,3 +125,64 @@ def export_urls(
         headers={"Content-Disposition":
                  f'attachment; filename="{org}_urls.xlsx"'}
     )
+
+
+@app.get("/download/pdfs")
+def download_pdfs(
+    org: str = Query(..., description="Organisation name"),
+    year: int = Query(None, description="Filter by year"),
+    type: str = Query(None, description="Filter by document type Resolution, Meeting Record, Bulletin,  Document, Report of the UNU Council (GAOR Supp 31), Audited Financial Statement (GAOR Supp 5/Add.5), Institutional Framework/Report")
+):
+    """
+    Download PDFs from URLs for a specific organization, year, and type.
+    
+    Query parameters:
+    - org: Organization ID (e.g., 'UNGA', 'UNSC')
+    - year: Optional year to filter by
+    - type: Optional document type to filter by (e.g., 'Resolution', 'Report')
+    
+    Returns JSON with download status, file paths, and statistics.
+    """
+    org = org.upper().replace("-", "").replace(" ", "")
+    
+    # Initialize the PDF downloader
+    downloader = PDFDownloader(db_path="uno.db", download_dir="data/downloads")
+    
+    # Start the download batch
+    result = downloader.download_batch(orgid=org, year=year, doc_type=type)
+    
+    # Return the summary as JSON
+    return JSONResponse(content=result)
+
+
+@app.get("/download/status")
+def get_download_status(
+    org: str = Query(..., description="Organisation name"),
+    year: int = Query(None, description="Filter by year"),
+    type: str = Query(None, description="Filter by document type Resolution, Meeting Record, Bulletin,  Document, Report of the UNU Council (GAOR Supp 31), Audited Financial Statement (GAOR Supp 5/Add.5), Institutional Framework/Report")
+):
+    """
+    Check available URLs for download without actually downloading them.
+    
+    Returns a count and sample of URLs that would be downloaded.
+    """
+    org = org.upper().replace("-", "").replace(" ", "")
+    
+    downloader = PDFDownloader(db_path="uno.db", download_dir="data/downloads")
+    df = downloader.query_urls(orgid=org, year=year, doc_type=type)
+    
+    if df.empty:
+        return JSONResponse({
+            "status": "no_data",
+            "message": f"No URLs found for OrgID={org}, Year={year}, Type={type}",
+            "count": 0
+        })
+    
+    return JSONResponse({
+        "status": "ok",
+        "orgid": org,
+        "year": year,
+        "doc_type": type,
+        "total_urls": len(df),
+        "sample_urls": df.head(5)[["Symbol", "Link", "Type", "Year"]].to_dict(orient="records")
+    })
