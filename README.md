@@ -11,7 +11,7 @@ server that can be extended for further analysis or consumption.
 
 ---
 
-## 🧩 High‑Level Architecture
+## High‑Level Architecture
 
 1. **Seeds & crawlers** – a JSON file (`data/seeds/UNO_URLs_EXCARPT.json`)
    lists base URLs for every principal organ, programme, fund and
@@ -45,7 +45,7 @@ server that can be extended for further analysis or consumption.
    filenames and timestamps.
 
 
-## 📁 Repository structure
+## Repository structure
 
 ```
 UNCrawl/
@@ -64,7 +64,7 @@ UNCrawl/
 ```
 
 
-## ⚙️ Setup instructions
+## Setup instructions
 
 1. **Clone the repository** and `cd` into it.
 
@@ -119,7 +119,7 @@ UNCrawl/
    database under `requested_links`.
 
 
-## 📄 Base URL JSON format
+## Base URL JSON format
 
 The file `data/seeds/UNO_URLs_EXCARPT.json` contains three arrays with
 objects of the form:
@@ -138,7 +138,7 @@ objects of the form:
 Generators and crawlers use the `url` values as starting points.
 
 
-## 🛠 Extending the system
+## Extending the system
 
 * **Add a new generator.**  In `generators_api.py` add a function that
   returns a `pandas.DataFrame` with columns `Year`, `Type`, `Symbol`
@@ -161,7 +161,7 @@ Generators and crawlers use the `url` values as starting points.
   database session as needed.
 
 
-## 🗂 Data model and schema
+## Data model and schema
 
 The only permanent ORM model at present is `OrgNode`:
 
@@ -192,7 +192,7 @@ CREATE TABLE requested_links (
 ```
 
 
-## 🔍 Example use cases
+## Example use cases
 
 * **Generate a list of GA resolutions.**  hit
   `/export/urls.xlsx?org=UNGA&year=2024` and open the resulting file.
@@ -204,7 +204,7 @@ CREATE TABLE requested_links (
   feed each URL to your favourite crawling routine.
 
 
-## 🧠 AI and further development
+## AI and further development
 
 The original assignment invited the use of AI for research or
 augmentation.  Although the current codebase does not integrate any
@@ -216,7 +216,7 @@ The structured generator functions and clear seed file make it
 straightforward to hook in natural‑language routines later.
 
 
-## ✅ Next steps / suggestions
+## Next steps / suggestions
 
 * implement a more complete data model for documents (metadata,
   content, versioning, etc.) and add corresponding ORM models

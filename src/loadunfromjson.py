@@ -63,7 +63,7 @@ def load_un_structure(json_file: str):
             )
 
         db.commit()
-        print("✅ Organization hierarchy inserted!")
+        print("Organization hierarchy inserted!")
 
 
 if __name__ == "__main__":

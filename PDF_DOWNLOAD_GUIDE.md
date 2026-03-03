@@ -126,12 +126,12 @@ Folder structure: `data/downloads/{OrgID}/{Year}/{DocumentType}/`
 
 ## Features
 
-✅ **Smart Caching** - Already downloaded files are skipped automatically
-✅ **Content Validation** - Verifies that downloaded files are actually PDFs
-✅ **Error Handling** - Continues downloading even if some URLs fail
-✅ **Progress Logging** - Logs each download with file size information
-✅ **Organized Structure** - Auto-creates folder hierarchy for organization and filtering
-✅ **Database Integration** - Queries the same database used by the export API
+**Smart Caching** - Already downloaded files are skipped automatically
+ **Content Validation** - Verifies that downloaded files are actually PDFs
+ **Error Handling** - Continues downloading even if some URLs fail
+ **Progress Logging** - Logs each download with file size information
+ **Organized Structure** - Auto-creates folder hierarchy for organization and filtering
+ **Database Integration** - Queries the same database used by the export API
 
 ## Usage in Python Code
 
