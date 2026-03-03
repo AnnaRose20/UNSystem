@@ -70,9 +70,17 @@ def _save_to_database(df: pd.DataFrame, orgid: str):
     # inject OrgID and time‑stamp
     df["OrgID"] = orgid
     df["RequestedAt"] = datetime.now()
+    # get ParentId from org_node table
+    query = text("SELECT parent_id FROM org_node WHERE id = :org")
+    engine = create_engine("sqlite:///uno.db")
+    with engine.connect() as conn:
+        result = conn.execute(query, {"org": orgid})
+        parent_id = result.scalar()
+    df["parent_id"] = parent_id
+    
 
     # keep only the columns we care about
-    cols = [c for c in ["Year", "Type", "Symbol", "Link", "OrgID", "RequestedAt"]
+    cols = [c for c in ["Year", "Type", "Symbol", "Link", "OrgID", "RequestedAt", "parent_id"]
             if c in df.columns]
     df = df[cols]
 
@@ -185,4 +193,118 @@ def get_download_status(
         "doc_type": type,
         "total_urls": len(df),
         "sample_urls": df.head(5)[["Symbol", "Link", "Type", "Year"]].to_dict(orient="records")
+    })
+
+
+@app.get("/retrieve/docs")
+def retrieve_docs(
+    org: str = Query(..., description="Organization ID (e.g., 'UNGA', 'UNSC')")
+):
+    """
+    Retrieve documents based on OrgID and download corresponding PDFs.
+
+    Query parameters:
+    - org: Organization ID (e.g., 'UNGA', 'UNSC')
+
+    Returns a JSON response with the retrieved documents and downloads PDFs.
+    """
+    org = org.upper().replace("-", "").replace(" ", "")
+
+    # Connect to the database
+    engine = create_engine("sqlite:///uno.db")
+    with engine.connect() as conn:
+        # Query to fetch documents for the given OrgID
+        query = "SELECT * FROM requested_links WHERE OrgID = :org"
+        params = {"org": org}
+
+        # Execute the query
+        result = conn.execute(text(query), params)
+        rows = [dict(row) for row in result.mappings()]  # Use .mappings() to convert rows to dictionaries
+        print(rows)
+    if not rows:
+        return JSONResponse({
+            "status": "no_data",
+            "message": f"No documents found for OrgID={org}",
+            "count": 0
+        })
+
+    # Initialize the PDF downloader
+    downloader = PDFDownloader(db_path="uno.db", download_dir="data/downloads")
+
+    # Download PDFs for the retrieved links
+    download_results = []
+    for row in rows:
+        link = row.get("Link")
+        if link:
+            download_result = downloader.download_pdf(link)
+            download_results.append({"link": link, "status": download_result})
+
+    return JSONResponse({
+        "status": "ok",
+        "orgid": org,
+        "total_docs": len(rows),
+        "documents": rows,
+        "download_results": download_results
+    })
+
+
+@app.get("/getalldocuments")
+def get_documents(
+    org: str = Query(..., description="Organization ID (e.g., 'UNGA', 'UNSC')"),
+    include_children: bool = Query(False, description="Include documents from child organizations")
+):
+    """
+    Retrieve documents for a given OrgID, optionally including child organizations.
+
+    Query parameters:
+    - org: Organization ID (e.g., 'UNGA', 'UNSC')
+    - include_children: Whether to include documents from child organizations
+
+    Returns a JSON response with the retrieved documents.
+    """
+    org = org.upper().replace("-", "").replace(" ", "")
+
+    # Connect to the database
+    engine = create_engine("sqlite:///uno.db")
+    with engine.connect() as conn:
+        # Fetch child organizations if include_children is True
+        org_ids = [org]
+        if include_children:
+            child_query = """
+                WITH RECURSIVE OrgTree AS (
+                    SELECT id FROM org_node WHERE id = :org
+                    UNION ALL
+                    SELECT o.id FROM org_node o
+                    INNER JOIN OrgTree ot ON o.parent_id = ot.id
+                )
+                SELECT id FROM OrgTree
+            """
+            result = conn.execute(text(child_query), {"org": org})
+            org_ids = [row["id"] for row in result.mappings()]
+
+        # Query to fetch documents for the given OrgID(s)
+        query = f"SELECT * FROM requested_links WHERE OrgID IN ({','.join([':id' + str(i) for i in range(len(org_ids))])})"
+        params = {f"id{i}": org_id for i, org_id in enumerate(org_ids)}
+
+        # Execute the query
+        result = conn.execute(text(query), params)
+        rows = [dict(row) for row in result.mappings()]  # Use .mappings() to convert rows to dictionaries
+
+    if not rows:
+        return JSONResponse({
+            "status": "no_data",
+            "message": f"No documents found for OrgID={org}",
+            "count": 0
+        })
+
+    # Initialize the PDFDownloader
+    downloader = PDFDownloader(db_path="uno.db", download_dir="data/downloads")
+    download_summary = downloader.download_all_documents(rows)
+
+    return JSONResponse({
+        "status": "ok",
+        "orgid": org,
+        "include_children": include_children,
+        "total_docs": len(rows),
+        "download_summary": download_summary
     })

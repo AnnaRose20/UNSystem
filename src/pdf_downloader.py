@@ -135,13 +135,13 @@ class PDFDownloader:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def download_pdf(self, page_url: str, target_path: Path, symbol: str | None = None) -> dict:
+    def download_pdf(self, page_url: str, target_path: Path = Path("data/downloads/Orgs_docs"), symbol: str | None = None) -> dict:
         """
         Download a single PDF from a UN docs HTML page URL by extracting the embedded PDF link first.
 
         Args:
             page_url: URL of the HTML page (e.g. https://docs.un.org/en/A/RES/79/110)
-            target_path: Directory to save the PDF
+            target_path: Directory to save the PDF (default: data/downloads/Orgs_docs)
             symbol: Optional document symbol for naming
 
         Returns:
@@ -293,6 +293,53 @@ class PDFDownloader:
         }
 
         logger.info(f"Batch download completed: {successful} successful, {failed} failed, {skipped} skipped")
+        return summary
+
+    def download_all_documents(self, documents: list[dict]) -> dict:
+        """
+        Download all documents provided in the list of dictionaries.
+
+        Args:
+            documents: A list of dictionaries containing document metadata, including 'Link' and optional 'Symbol'.
+
+        Returns:
+            A summary dictionary with download results and statistics.
+        """
+        logger.info("Starting download of all provided documents.")
+
+        results = []
+        for doc in documents:
+            link = doc.get("Link")
+            symbol = doc.get("Symbol")
+            if not link:
+                results.append({
+                    "status": "failed",
+                    "reason": "Missing Link in document metadata",
+                    "document": doc
+                })
+                continue
+
+            # Use the default download directory
+            target_path = self.download_dir
+            result = self.download_pdf(page_url=link, target_path=target_path, symbol=symbol)
+            results.append(result)
+
+        successful = sum(1 for r in results if r["status"] == "success")
+        failed = sum(1 for r in results if r["status"] == "failed")
+        skipped = sum(1 for r in results if r["status"] == "skipped")
+        total_size = sum(r.get("size_mb", 0) for r in results if r["status"] == "success")
+
+        summary = {
+            "status": "completed",
+            "total": len(results),
+            "successful": successful,
+            "failed": failed,
+            "skipped": skipped,
+            "total_size_mb": round(total_size, 2),
+            "results": results,
+        }
+
+        logger.info(f"Download completed: {successful} successful, {failed} failed, {skipped} skipped")
         return summary
 
 
