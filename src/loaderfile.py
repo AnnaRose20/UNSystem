@@ -9,7 +9,7 @@ from db.session import SessionLocal, init_db
 def main():
     init_db()
     with SessionLocal() as db:
-        print("✅ DB initialized")
+        print("DB initialized")
 
 if __name__ == "__main__":
     main()
